@@ -78,7 +78,7 @@
 	colores DB 02H, 04H , 05H , 06H , 09H, 0AH, 0BH, 0CH, 0EH, 0FH  ; Vector de colores posibles para seleccionar
 	
 	;Variables para guardar y cargar archivos
-	ruta db 'C',':','\','D','i','b','u','j','o','s','\','$',00h ; Carpeta donde se encuentran los archivos de los dibujos
+	ruta db 'C',':','\','D','i','b','u','j','o','s','\','$','$','$','$','$','$','$','$','$','$','$','$','$','$',00h ; Carpeta donde se encuentran los archivos de los dibujos
 	;rutaSegunda db 'C',':','\','D','i','b','u','j','o','s','\','h','o','l','a','.','t','x','t','$',00h ; Carpeta donde se encuentran los archivos de los dibujos
 	handle dw 0 ; Contenido del archivo (Dibujo a guardar)
 	char_buffer db 1 dup('0')
@@ -459,8 +459,8 @@
 		cmp FilCursor,405
 		jge NoGuardar
 		CALL GUARDAR_ARCHIVO
-		CALL ESCRIBIR_PRUEBA
-	
+		;CALL ESCRIBIR_PRUEBA
+		CALL ESCRIBIR_ARCHIVO
 		NoGuardar:	
 		ret
 	DETECTAR_CLICK_GUARDAR endp
@@ -635,33 +635,22 @@
 	GUARDAR_ARCHIVO endp
 	
 	ESCRIBIR_PRUEBA proc
-			MOV AL,'8'
-			mov char_buffer[0], AL ; Almacenar el carácter '8' en el buffer
-	
-			mov ah,3dh							;Empezamos a abrir el archivo en modo escritura
-			mov al,2h
-			mov dx,offset ruta					;Ponemos la ruta del archivo a abrir
-			int 21h
-POSICION 3,30; Posicion para poner el texto de la opcion Limpiar
-		IMPRIMIR ruta		
-			;jc TERMINARPRUEBA       ; Si hubo error, saltar a TERMINARPRUEBA
-
-			mov bx, ax             ; Guardar el manejador del archivo (en BX)
-	POSICION 1,20; Posicion para poner el texto de la opcion Limpiar
-		IMPRIMIR LimpiarOpcion
-			
-			;; Escribir en el archivo
-			mov cx, 1              ; Cantidad de bytes a escribir (1 byte)
-			mov dx, offset char_buffer ; Dirección del buffer
-			mov ah, 40h            ; Función de escritura en archivo
-			int 21h                ; Llamada a DOS para escribir
-			;jc TERMINARPRUEBA      ; Verificar si ocurrió un error
-
-			cmp ax, cx             ; Comparar bytes escritos con los solicitados
-			;jne TERMINARPRUEBA     ; Si no se escribieron todos, ir a TERMINARPRUEBA
-
-			;TERMINARPRUEBA:
-			ret
+		mov ah,3dh							;Empezamos a abrir el archivo en modo escritura
+		mov al,1h
+		mov dx,offset ruta					;Ponemos la ruta del archivo a abrir
+		int 21h								;Terminamos de abrir el archivo en modo escritura
+		jc TerminarContenido2				;En caso de fallar sale
+		mov bx,ax							;mover hardfile
+		mov cx,25							;Cantidad a guardar
+		mov dx,offset ruta				;Cargamos Datos
+		mov ah,40h
+		int 21h
+		cmp cx,ax
+		jne TerminarContenido2				;En caso de fallar sale
+		mov ah,3eh							;Cerrar archivo
+		int 21h
+		TerminarContenido2:
+		ret
 	ESCRIBIR_PRUEBA endp
 	
 	ESCRIBIR_ARCHIVO proc
